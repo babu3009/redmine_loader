@@ -225,7 +225,13 @@ module Concerns::Export
       xml.LateFinish finish_date.to_time.to_s(:ms_xml)
       time = get_scorm_time(struct.estimated_hours)
       xml.Work time
-      #xml.Duration time
+      duration = 0
+      start_date.upto(finish_date) { |day|
+        if STANDARD_CALENDAR['week_days'][day.wday]['day_working'] == 1
+          duration += 1
+        end
+      }
+      xml.Duration "P#{duration}D"
       #xml.ManualDuration time
       #xml.RemainingDuration time
       #xml.RemainingWork time
