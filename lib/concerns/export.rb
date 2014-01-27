@@ -7,6 +7,17 @@ module Concerns::Export
   STANDARD_CALENDAR = YAML::load_file(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'config', 'standard_calendar.yaml')))
   FIELD_IDS = YAML::load_file(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'config', 'field_id.yaml')))
 
+  def self.week_days calendar
+    week_days = {}
+    calendar['week_days'].each do |week_day| 
+      day_type = week_day['day_type'];
+      week_days[day_type] = week_day unless day_type == 0
+    end
+    week_days
+  end
+
+  STANDARD_WEEK_DAYS = self.week_days STANDARD_CALENDAR
+
   def generate_xml
     @uid = 1
     get_sorted_query
@@ -225,13 +236,7 @@ module Concerns::Export
       xml.LateFinish finish_date.to_time.to_s(:ms_xml)
       time = get_scorm_time(struct.estimated_hours)
       xml.Work time
-      duration = 0
-      start_date.upto(finish_date) { |day|
-        if STANDARD_CALENDAR['week_days'][day.wday]['day_working'] == 1
-          duration += 1
-        end
-      }
-      xml.Duration "P#{duration}D"
+      xml.Duration "P#{duration(start_date, finish_date)}D"
       #xml.ManualDuration time
       #xml.RemainingDuration time
       #xml.RemainingWork time
@@ -315,5 +320,15 @@ module Concerns::Export
       xml.OutlineNumber @uid
       xml.OutlineLevel 1
     }
+  end
+
+  def duration(start_date, finish_date)
+    duration = 0
+    start_date.upto(finish_date) do |day|
+      if STANDARD_WEEK_DAYS[day.cwday]['day_working'] == 1
+        duration += 1
+      end
+    end
+    duration
   end
 end
