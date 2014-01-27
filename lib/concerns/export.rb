@@ -5,6 +5,7 @@ module Concerns::Export
   include LoaderHelper
 
   STANDARD_CALENDAR = YAML::load_file(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'config', 'standard_calendar.yaml')))
+  FIELD_IDS = YAML::load_file(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'config', 'field_id.yaml')))
 
   def generate_xml
     @uid = 1
@@ -21,18 +22,18 @@ module Concerns::Export
         xml.Title @project.name
         xml.ExtendedAttributes {
           xml.ExtendedAttribute {
-            xml.FieldID 188744000
-            xml.FieldName 'Text14'
+            xml.FieldID FIELD_IDS[@settings[:redmine_status_field_name]]
+            xml.FieldName @settings[:redmine_status_field_name]
             xml.Alias @settings[:redmine_status_alias]
           }
           xml.ExtendedAttribute {
-            xml.FieldID 188744001
-            xml.FieldName 'Text15'
+            xml.FieldID FIELD_IDS[@settings[:redmine_id_field_name]]
+            xml.FieldName @settings[:redmine_id_field_name]
             xml.Alias @settings[:redmine_id_alias]
           }
           xml.ExtendedAttribute {
-            xml.FieldID 188744002
-            xml.FieldName 'Text16'
+            xml.FieldID FIELD_IDS[@settings[:tracker_field_name]]
+            xml.FieldName @settings[:tracker_field_name]
             xml.Alias @settings[:tracker_alias]
           }
         }
