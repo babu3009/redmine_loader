@@ -1,6 +1,10 @@
 module Concerns::Export
+  require 'yaml'
+
   extend ActiveSupport::Concern
   include LoaderHelper
+
+  STANDARD_CALENDAR = YAML::load_file(File.expand_path(File.join(File.dirname(__FILE__), '..', '..', 'config', 'standard_calendar.yaml')))
 
   def generate_xml
     @uid = 1
@@ -35,27 +39,23 @@ module Concerns::Export
         xml.Calendars {
           xml.Calendar {
             xml.UID @uid
-            xml.Name 'Standard'
+            xml.Name STANDARD_CALENDAR[:name]
             xml.IsBaseCalendar 1
             xml.IsBaselineCalendar 0
             xml.BaseCalendarUID 0
-            xml.Weekdays {
-              (1..7).each do |day|
+            xml.Weekdays{
+              STANDARD_CALENDAR['week_days'].each do |week_day|
                 xml.Weekday {
-                  xml.DayType day
-                  if day.in?([1, 7])
-                    xml.DayWorking 0
-                  else
-                    xml.DayWorking 1
+                  xml.DayType week_day['day_type']
+                  xml.DayWorking week_day['day_working']
+                  if week_day.key?('working_times')
                     xml.WorkingTimes {
-                      xml.WorkingTime {
-                        xml.FromTime '09:00:00'
-                        xml.ToTime '13:00:00'
-                      }
-                      xml.WorkingTime {
-                        xml.FromTime '14:00:00'
-                        xml.ToTime '18:00:00'
-                      }
+                      week_day['working_times'].each do |working_time| 
+                        xml.WorkingTime {
+                          xml.FromTime working_time['from_time']
+                          xml.ToTime working_time['to_time']
+                        }
+                      end
                     }
                   end
                 }
